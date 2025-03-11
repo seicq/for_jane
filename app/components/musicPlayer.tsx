@@ -20,30 +20,17 @@ const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
 
-  const audioRef = useRef(null);
-
-  useEffect(() => {
-    const audio = audioRef.current;
-
-    const updateTime = () => setCurrentTime(audio.currentTime);
-    const updateDuration = () => setDuration(audio.duration);
-
-    audio.addEventListener("timeupdate", updateTime);
-    audio.addEventListener("loadedmetadata", updateDuration);
-
-    return () => {
-      audio.removeEventListener("timeupdate", updateTime);
-      audio.removeEventListener("loadedmetadata", updateDuration);
-    };
-  }, []);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   const togglePlayPause = () => {
-    if (audioRef.current.paused) {
-      audioRef.current.play();
-      setIsPlaying(true);
-    } else {
-      audioRef.current.pause();
-      setIsPlaying(false);
+    if (audioRef.current) {
+      if (audioRef.current.paused) {
+        audioRef.current.play();
+        setIsPlaying(true);
+      } else {
+        audioRef.current.pause();
+        setIsPlaying(false);
+      }
     }
   };
 
@@ -73,7 +60,7 @@ const MusicPlayer = () => {
         className="w-full max-w-[320px] rounded-3xl overflow-hidden backdrop-blur-xl bg-white/30 shadow-lg p-6"
       >
         {/* Images */}
-        <div className="aspect-square rounded-2xl bg-white-100   mb-4 relative overflow-hidden">
+        <div className="aspect-square rounded-2xl bg-white-100 mb-4 relative overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.img
               key={currentCoverIndex}
@@ -156,7 +143,15 @@ const MusicPlayer = () => {
           <span className="text-sm text-gray-600">From my heart</span>
         </div>
       </motion.div>
-      <audio ref={audioRef} src="/music/Blue-Yung-Kai.mp3" loop />
+
+      {/* Audio Element (Now handles updates via props) */}
+      <audio
+        ref={audioRef}
+        src="/music/Blue-Yung-Kai.mp3"
+        loop
+        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
+      />
     </div>
   );
 };
