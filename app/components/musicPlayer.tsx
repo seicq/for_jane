@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Pause, Play, SkipBack, SkipForward, Volume2 } from "lucide-react";
 import { Slider } from "@/components/ui/slider";
 
 const covers = [
@@ -13,6 +13,8 @@ const covers = [
   "/images/covers/7.png",
 ];
 
+
+
 const MusicPlayer = () => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentCoverIndex, setCurrentCoverIndex] = useState(0);
@@ -20,17 +22,34 @@ const MusicPlayer = () => {
   const [duration, setDuration] = useState(0);
   const [progress, setProgress] = useState(0);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+
+    const updateTime = () => {
+      if (audio) setCurrentTime(audio.currentTime);
+    };
+    const updateDuration = () => {
+      if (audio) setDuration(audio.duration);
+    };
+
+
+    return () => {
+      if (audio) {
+        audio.removeEventListener("timeupdate", updateTime);
+        audio.removeEventListener("loadedmetadata", updateDuration);
+      }
+    };
+  }, []);
 
   const togglePlayPause = () => {
-    if (audioRef.current) {
-      if (audioRef.current.paused) {
-        audioRef.current.play();
-        setIsPlaying(true);
-      } else {
-        audioRef.current.pause();
-        setIsPlaying(false);
-      }
+    if (audioRef.current && audioRef.current.paused) {
+      audioRef.current.play();
+      setIsPlaying(true);
+    } else {
+      audioRef.current?.pause();
+      setIsPlaying(false);
     }
   };
 
@@ -60,7 +79,7 @@ const MusicPlayer = () => {
         className="w-full max-w-[320px] rounded-3xl overflow-hidden backdrop-blur-xl bg-white/30 shadow-lg p-6"
       >
         {/* Images */}
-        <div className="aspect-square rounded-2xl bg-white-100 mb-4 relative overflow-hidden">
+        <div className="aspect-square rounded-2xl bg-white-100   mb-4 relative overflow-hidden">
           <AnimatePresence mode="wait">
             <motion.img
               key={currentCoverIndex}
@@ -143,15 +162,7 @@ const MusicPlayer = () => {
           <span className="text-sm text-gray-600">From my heart</span>
         </div>
       </motion.div>
-
-      {/* Audio Element (Now handles updates via props) */}
-      <audio
-        ref={audioRef}
-        src="/music/Blue-Yung-Kai.mp3"
-        loop
-        onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-        onLoadedMetadata={(e) => setDuration(e.currentTarget.duration)}
-      />
+      <audio ref={audioRef} src="/music/Blue-Yung-Kai.mp3" loop />
     </div>
   );
 };
